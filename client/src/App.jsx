@@ -5,6 +5,7 @@ import "react-datepicker/dist/react-datepicker.css";
 const API_BASE = "https://learn-agxg.onrender.com";
 
 function formatDate(date) {
+  // Ensures date is in YYYY-MM-DD format
   return date.toISOString().split("T")[0];
 }
 
@@ -16,22 +17,26 @@ export default function App() {
   const [status, setStatus] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
 
-  function fetchSlots(date) {
-    fetch(`${API_BASE}/api/slots?date=${formatDate(date)}`)
-      .then((res) => res.json())
-      .then(setSlots);
-  }
-
+  // Load slots when date changes
   useEffect(() => {
-    fetchSlots(selectedDate);
-    setSelectedSlotId(null);
-    setStatus("");
+    fetch(`${API_BASE}/api/slots?date=${formatDate(selectedDate)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setSlots(data);
+        setSelectedSlotId(null); // Reset selected slot on date change
+        setStatus(""); // Clear status
+      });
   }, [selectedDate]);
 
-  function handleSlotSelect(id, status) {
-    if (status === "open") setSelectedSlotId(id);
+  // Handle slot selection
+  function handleSlotSelect(id, slotStatus) {
+    if (slotStatus === "open") {
+      setSelectedSlotId(id);
+      setStatus(""); // Clear status on selection
+    }
   }
 
+  // Handle slot submission
   function handleSubmit() {
     if (!user) {
       setStatus("Please enter your name.");
@@ -58,6 +63,7 @@ export default function App() {
       });
   }
 
+  // Admin review (accept/reject)
   function reviewSlot(id, action) {
     fetch(`${API_BASE}/api/review-slot`, {
       method: "POST",
@@ -77,7 +83,7 @@ export default function App() {
   return (
     <div style={{ margin: "2rem auto", maxWidth: 500 }}>
       <h1>Calendar Slot Booking App</h1>
-      <div style={{ marginBottom: "1rem" }}>
+      <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center" }}>
         <DatePicker
           selected={selectedDate}
           onChange={date => setSelectedDate(date)}
