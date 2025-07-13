@@ -9,7 +9,7 @@ let slots = [
   { id: "2025-07-13-1", date: "2025-07-13", index: 1, available: true },
 ];
 
-// GET slots (example endpoint)
+// GET slots
 app.get("/api/slots", (req, res) => {
   res.json(slots);
 });
@@ -34,4 +34,10 @@ app.use(express.static(path.join(__dirname, "../client/dist")));
 // Fallback for React Router
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
 });
