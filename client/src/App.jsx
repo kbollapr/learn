@@ -13,7 +13,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   function fetchSlots(date) {
-    fetch(`/api/slots?date=${formatDate(date)}`)
+    fetch("https://learn-agxg.onrender.com/api/slots?date=2025-07-13")
       .then((res) => res.json())
       .then(setSlots);
   }
