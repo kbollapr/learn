@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+
 const API_BASE = "https://learn-agxg.onrender.com";
 
 function formatDate(date) {
@@ -11,36 +12,54 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [slots, setSlots] = useState([]);
   const [user, setUser] = useState("");
+  const [selectedSlotId, setSelectedSlotId] = useState(null);
+  const [status, setStatus] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
 
   function fetchSlots(date) {
-    fetch (`${API_BASE}/api/slots?date=${formatDate(date)}`)
+    fetch(`${API_BASE}/api/slots?date=${formatDate(date)}`)
       .then((res) => res.json())
       .then(setSlots);
   }
 
   useEffect(() => {
     fetchSlots(selectedDate);
+    setSelectedSlotId(null);
+    setStatus("");
   }, [selectedDate]);
 
-  function requestSlot(id) {
-    fetch("{API_BASE}/api/request-slot", {
+  function handleSlotSelect(id, status) {
+    if (status === "open") setSelectedSlotId(id);
+  }
+
+  function handleSubmit() {
+    if (!user) {
+      setStatus("Please enter your name.");
+      return;
+    }
+    if (!selectedSlotId) {
+      setStatus("Please select a slot.");
+      return;
+    }
+    fetch(`${API_BASE}/api/request-slot`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, user }),
+      body: JSON.stringify({ id: selectedSlotId, user }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setSlots(slots.map((s) => (s.id === id ? data.slot : s)));
+          setStatus("Selected slot successfully!");
+          setSlots(slots.map((s) => (s.id === selectedSlotId ? data.slot : s)));
+          setSelectedSlotId(null);
         } else {
-          alert(data.error);
+          setStatus(data.error || "Failed to select slot.");
         }
       });
   }
 
   function reviewSlot(id, action) {
-    fetch("${API_BASE}/api/review-slot", {
+    fetch(`${API_BASE}/api/review-slot`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, action }),
@@ -50,7 +69,7 @@ export default function App() {
         if (data.success) {
           setSlots(slots.map((s) => (s.id === id ? data.slot : s)));
         } else {
-          alert(data.error);
+          setStatus(data.error || "Failed to update slot.");
         }
       });
   }
@@ -85,18 +104,16 @@ export default function App() {
                   padding: "0.75rem",
                   border: "1px solid #ccc",
                   background: slot.status === "open"
-                    ? "#e0ffe0"
+                    ? (selectedSlotId === slot.id ? "#a0e0ff" : "#e0ffe0")
                     : slot.status === "pending"
                       ? "#fffbe0"
                       : "#eee",
                   color: slot.status === "booked" ? "#999" : "#222",
                   cursor: slot.status === "open" ? "pointer" : "not-allowed",
                   opacity: slot.status === "booked" ? 0.5 : 1,
+                  fontWeight: selectedSlotId === slot.id ? "bold" : "normal"
                 }}
-                onClick={() =>
-                  slot.status === "open" && user && requestSlot(slot.id)
-                }
-                title={slot.status === "open" && !user ? "Enter your name to book" : ""}
+                onClick={() => handleSlotSelect(slot.id, slot.status)}
               >
                 <b>{slot.time}</b> — {slot.status.toUpperCase()}
                 {slot.status === "pending" && (
@@ -108,6 +125,18 @@ export default function App() {
               </li>
             ))}
           </ul>
+          <button
+            style={{ marginTop: "1rem", padding: "0.75rem 1.5rem", fontSize: "1rem" }}
+            onClick={handleSubmit}
+            disabled={!selectedSlotId || !user}
+          >
+            Submit
+          </button>
+          {status && (
+            <div style={{ marginTop: "1rem", color: status.includes("successfully") ? "green" : "red" }}>
+              {status}
+            </div>
+          )}
         </div>
       ) : (
         <div>
