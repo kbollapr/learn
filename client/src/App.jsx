@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+const API_BASE = "https://learn-agxg.onrender.com";
 
 function formatDate(date) {
   return date.toISOString().split("T")[0];
@@ -13,7 +14,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   function fetchSlots(date) {
-    fetch("https://learn-agxg.onrender.com/api/slots?date=2025-07-13")
+    fetch (`${API_BASE}/api/slots?date=${formatDate(date)}`)
       .then((res) => res.json())
       .then(setSlots);
   }
@@ -23,7 +24,7 @@ export default function App() {
   }, [selectedDate]);
 
   function requestSlot(id) {
-    fetch("/api/request-slot", {
+    fetch("{API_BASE}/api/request-slot", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, user }),
@@ -39,7 +40,7 @@ export default function App() {
   }
 
   function reviewSlot(id, action) {
-    fetch("/api/review-slot", {
+    fetch("${API_BASE}/api/review-slot", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, action }),
